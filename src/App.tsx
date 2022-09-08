@@ -1,27 +1,46 @@
-import {useState, memo, useCallback} from 'react';
+import {useEffect, useState} from 'react';
 import './App.css';
 
-interface ButtonProps {
-  incrementButton: (value: number) => void;
-}
+const useFetch = (url: any, options: any) => {
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-const Button = memo(function Button({incrementButton}: ButtonProps) {
-  return <button onClick={() => incrementButton(10)}>increment</button>;
-});
+  useEffect(() => {
+    setLoading(true);
+
+    const fetchData = async () => {
+      await new Promise((r) => setTimeout(r, 3000));
+
+      try {
+        const response = await fetch(url, options);
+
+        const jsonResult = await response.json();
+
+        setResult(jsonResult);
+
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        throw error;
+      }
+    };
+    fetchData();
+  }, []);
+
+  return [result, loading];
+};
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [result, loading] = useFetch(
+    'https://jsonplaceholder.typicode.com/posts',
+    {},
+  );
 
-  const incrementCounter = useCallback((num: number) => {
-    setCount((counter) => counter + num);
-  }, []);
+  console.log(result);
 
   return (
     <div className='App'>
-      <div className='card'>
-        {count}
-        <Button incrementButton={incrementCounter} />
-      </div>
+      <h1>Oi</h1>
     </div>
   );
 }
