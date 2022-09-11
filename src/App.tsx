@@ -1,46 +1,55 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import './App.css';
 
-const useFetch = (url: any, options: any) => {
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+const useAsync = (asyncFunction, shouldRun) => {
+  const [state, setState] = useState({result: null, error: '', status: 'idle'});
+
+  const run = useCallback(() => {
+    setState({
+      result: null,
+      error: '',
+      status: 'pending',
+    });
+
+    return asyncFunction()
+      .then((response) => {
+        setState({
+          result: response,
+          error: '',
+          status: 'settled',
+        });
+      })
+      .catch((error) => {
+        setState({
+          result: null,
+          error: error.message,
+          status: 'error',
+        });
+      });
+  }, [asyncFunction]);
 
   useEffect(() => {
-    setLoading(true);
+    if (shouldRun) {
+      run();
+    }
+  }, [run, shouldRun]);
 
-    const fetchData = async () => {
-      await new Promise((r) => setTimeout(r, 3000));
+  return [run, state];
+};
 
-      try {
-        const response = await fetch(url, options);
+const fetchData = async () => {
+  const data = await fetch('https://jsonplaceholder.typicode.com/posts');
+  const json = await data.json();
 
-        const jsonResult = await response.json();
-
-        setResult(jsonResult);
-
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        throw error;
-      }
-    };
-    fetchData();
-  }, []);
-
-  return [result, loading];
+  return json;
 };
 
 function App() {
-  const [result, loading] = useFetch(
-    'https://jsonplaceholder.typicode.com/posts',
-    {},
-  );
-
-  console.log(result);
+  const [reFetchData, result] = useAsync(fetchData, true);
 
   return (
     <div className='App'>
-      <h1>Oi</h1>
+      <pre>{JSON.stringify(result, null, 2)}</pre>
     </div>
   );
 }
