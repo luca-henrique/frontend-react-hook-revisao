@@ -1,55 +1,50 @@
-import {useCallback, useEffect, useState} from 'react';
-import './App.css';
+import {useEffect, useState} from 'react';
 
-const useAsync = (asyncFunction, shouldRun) => {
-  const [state, setState] = useState({result: null, error: '', status: 'idle'});
+/*
 
-  const run = useCallback(() => {
-    setState({
-      result: null,
-      error: '',
-      status: 'pending',
-    });
+Quando chamar o hook vou passar queryValue que é o media query 
 
-    return asyncFunction()
-      .then((response) => {
-        setState({
-          result: response,
-          error: '',
-          status: 'settled',
-        });
-      })
-      .catch((error) => {
-        setState({
-          result: null,
-          error: error.message,
-          status: 'error',
-        });
-      });
-  }, [asyncFunction]);
+*/
+
+const useMediaQuery = (
+  minWidth: number,
+  maxWidth: number,
+  initialValue = false,
+) => {
+  const [match, setMatch] = useState(initialValue);
 
   useEffect(() => {
-    if (shouldRun) {
-      run();
-    }
-  }, [run, shouldRun]);
+    let isMounted = true;
+    const matchMedia = window.matchMedia(
+      `${minWidth && `(min-width:${minWidth}px)`} and ${
+        maxWidth && `(max-width:${maxWidth}px)`
+      }`,
+    );
 
-  return [run, state];
-};
+    const handleChange = () => {
+      if (!isMounted) {
+        setMatch(Boolean(matchMedia.matches));
+      }
+    };
 
-const fetchData = async () => {
-  const data = await fetch('https://jsonplaceholder.typicode.com/posts');
-  const json = await data.json();
+    matchMedia.addEventListener('changer', handleChange);
+    setMatch(Boolean(matchMedia.matches));
 
-  return json;
+    return () => {
+      isMounted = false;
+      matchMedia.removeEventListener('changer', handleChange);
+    };
+  }, [minWidth, maxWidth]);
+
+  return match;
 };
 
 function App() {
-  const [reFetchData, result] = useAsync(fetchData, true);
-
+  const huge = useMediaQuery(768, 979);
+  console.log(huge);
   return (
     <div className='App'>
-      <pre>{JSON.stringify(result, null, 2)}</pre>
+      <pre>oi</pre>
     </div>
   );
 }
