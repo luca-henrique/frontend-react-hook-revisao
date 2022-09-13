@@ -1,86 +1,57 @@
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
-const App = () => {
-  console.log('%cCHILD RENDER STARTING...', 'color: green');
+class ErrorBoundary extends React.Component {
+  constructor(props: any) {
+    super(props);
+    this.state = {hasError: false};
+  }
 
-  // Lazy Initializer #1
-  const [state1, setState1] = useState(() => {
-    const state = new Date().toLocaleDateString();
-    console.log(
-      '%cState Lazy initializer - (useState + InitialValue) = ' + state,
-      'color: green',
-    );
-    return state;
-  });
-  const renders = useRef(0);
+  static getDerivedStateFromError(error) {
+    // Atualiza o state para que a próxima renderização mostre a UI alternativa.
+    return {hasError: true};
+  }
 
-  useEffect(() => {
-    console.log('%cuseEffect (UPDATE state1) ' + state1, 'color: #dbc70f');
-  }, [state1]);
+  componentDidCatch(error, errorInfo) {
+    // Você também pode registrar o erro em um serviço de relatórios de erro
+    console.log(error, errorInfo);
+  }
 
-  useEffect(() => {
-    console.log('%cuseEffect -> No Dependencies', 'color: #dbc70f');
-    renders.current += 1;
+  render() {
+    if (this.state.hasError) {
+      // Você pode renderizar qualquer UI alternativa
+      return <h1>Algo deu errado.</h1>;
+    }
 
-    return () => {
-      console.log('%cuseEffect (Cleanup) -> No Dependencies', 'color: #dbc70f');
-    };
-  });
+    return this.props.children;
+  }
+}
 
-  useEffect(() => {
-    const listener = () => console.log('Listener...');
-    console.log('%cuseEffect -> Empty dependencies', 'color: #dbc70f');
-
-    return () => {
-      console.log(
-        '%cuseEffect (Cleanup) -> Empty dependencies',
-        'color: #dbc70f',
-      );
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    console.log('%cuseLayoutEffect', 'color: #e61a4d');
-
-    return () => {
-      console.log('%cuseLayoutEffect (Cleanup)', 'color: #e61a4d');
-    };
-  });
-
-  console.log(
-    '%cCHILD RENDER ' + renders.current + ' ENDING...',
-    'color: green',
-  );
-  return (
-    <div
-      onClick={() => setState1(new Date().toLocaleString('pt-br'))}
-      style={{fontSize: '60px'}}
-    >
-      State: {state1}
-    </div>
-  );
-};
-const Home = () => {
-  const renders = useRef(0);
+const ItWitllTrowError = () => {
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    renders.current += 1;
-  });
-
-  console.log(`%cPARENT RENDER ${renders.current} STARTING...`, 'color: green');
-  const [show, setShow] = useState(false);
-  console.log(
-    '%cState Initializer - (useState + InitialValue) = ' + show,
-    'color: green',
-  );
-  console.log(`%cPARENT RENDER ${renders.current} ENDING...`, 'color: green');
+    console.log(count);
+    if (count > 3) {
+      throw new Error('Chato');
+    }
+  }, [count]);
 
   return (
     <div>
-      <p style={{fontSize: '60px'}} onClick={() => setShow((s) => !s)}>
-        Show hooks
-      </p>
-      {show && <App />}
+      <button onClick={() => setCount((s) => s + 1)}>
+        Click to increase {count}
+      </button>
+    </div>
+  );
+};
+
+const Home = () => {
+  return (
+    <div>
+      <p style={{fontSize: '60px'}}>Show hooks</p>
+      <ErrorBoundary>
+        <ItWitllTrowError />
+      </ErrorBoundary>
     </div>
   );
 };
