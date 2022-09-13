@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useDebugValue, useEffect, useState} from 'react';
 
 /*
 
@@ -7,19 +7,29 @@ Quando chamar o hook vou passar queryValue que é o media query
 */
 
 const useMediaQuery = (
-  minWidth: number,
-  maxWidth: number,
+  minWidth: number = 0,
+  maxWidth: number = 0,
   initialValue = false,
 ) => {
   const [match, setMatch] = useState(initialValue);
 
+  const verifyExistValueVariables = minWidth > 0 && maxWidth > 0;
+
+  const verifyExistValueMinWidth =
+    minWidth > 0 ? `(min-width:${minWidth}px)` : '';
+
+  const verifyExistValueMinWidthMaxWidth =
+    maxWidth > 0 ? `(max-width:${maxWidth}px)` : '';
+
+  const addOtherCondition = verifyExistValueVariables ? `and` : '';
+
+  const compositionAllVariables = `${verifyExistValueMinWidth} ${addOtherCondition} ${verifyExistValueMinWidthMaxWidth}`;
+
+  useDebugValue(`Composition alll variables ${compositionAllVariables}`);
+
   useEffect(() => {
     let isMounted = true;
-    const matchMedia = window.matchMedia(
-      `${minWidth && `(min-width:${minWidth}px)`} and ${
-        maxWidth && `(max-width:${maxWidth}px)`
-      }`,
-    );
+    const matchMedia = window.matchMedia(compositionAllVariables);
 
     const handleChange = () => {
       if (!isMounted) {
@@ -40,7 +50,7 @@ const useMediaQuery = (
 };
 
 function App() {
-  const huge = useMediaQuery(768, 979);
+  const huge = useMediaQuery(768);
   console.log(huge);
   return (
     <div className='App'>
