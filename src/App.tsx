@@ -1,58 +1,44 @@
-import React, {useEffect, useState} from 'react';
+import {Children, cloneElement, useState} from 'react';
 
-class ErrorBoundary extends React.Component {
-  constructor(props: any) {
-    super(props);
-    this.state = {hasError: false};
-  }
+const style = {
+  style: {
+    fontSize: '60px',
+  },
+};
 
-  static getDerivedStateFromError(error) {
-    // Atualiza o state para que a próxima renderização mostre a UI alternativa.
-    return {hasError: true};
-  }
+const Parent = ({children}) => {
+  return Children.map(children, (child) => {
+    const newChild = cloneElement(child, {...style});
+    return newChild;
+  });
+};
 
-  componentDidCatch(error, errorInfo) {
-    // Você também pode registrar o erro em um serviço de relatórios de erro
-    console.log(error, errorInfo);
-  }
+const TurnOnOff = ({children}: any) => {
+  const [isOn, setIsOn] = useState(false);
+  const onTurn = () => setIsOn((s) => !s);
 
-  render() {
-    if (this.state.hasError) {
-      // Você pode renderizar qualquer UI alternativa
-      return <h1>Algo deu errado.</h1>;
-    }
+  return Children.map(children, (child) => {
+    const newChild = cloneElement(child, {isOn, onTurn});
 
-    return this.props.children;
-  }
-}
+    return newChild;
+  });
+};
 
-const ItWitllTrowError = () => {
-  const [count, setCount] = useState(0);
+const TurnedOn = ({isOn, children}: any) => (isOn ? children : null);
 
-  useEffect(() => {
-    console.log(count);
-    if (count > 3) {
-      throw new Error('Chato');
-    }
-  }, [count]);
+const TurnedOff = ({isOn, children}: any) => (isOn ? null : children);
 
-  return (
-    <div>
-      <button onClick={() => setCount((s) => s + 1)}>
-        Click to increase {count}
-      </button>
-    </div>
-  );
+const TurnButton = ({isOn, onTurn}: any) => {
+  return <button onClick={onTurn}>Turn is {isOn ? 'On' : 'OFF'}</button>;
 };
 
 const Home = () => {
   return (
-    <div>
-      <p style={{fontSize: '60px'}}>Show hooks</p>
-      <ErrorBoundary>
-        <ItWitllTrowError />
-      </ErrorBoundary>
-    </div>
+    <TurnOnOff>
+      <TurnedOn>Quando estiver On</TurnedOn>
+      <TurnedOff>Quando estiver Off</TurnedOff>
+      <TurnButton />
+    </TurnOnOff>
   );
 };
 
