@@ -1,34 +1,36 @@
-import {Children, cloneElement, useState} from 'react';
+import {
+  Children,
+  cloneElement,
+  createContext,
+  useContext,
+  useState,
+} from 'react';
 
-const style = {
-  style: {
-    fontSize: '60px',
-  },
-};
-
-const Parent = ({children}) => {
-  return Children.map(children, (child) => {
-    const newChild = cloneElement(child, {...style});
-    return newChild;
-  });
-};
+const TurnOnOffContext = createContext({});
 
 const TurnOnOff = ({children}: any) => {
   const [isOn, setIsOn] = useState(false);
   const onTurn = () => setIsOn((s) => !s);
 
-  return Children.map(children, (child) => {
-    const newChild = cloneElement(child, {isOn, onTurn});
-
-    return newChild;
-  });
+  return (
+    <TurnOnOffContext.Provider value={{isOn, onTurn}}>
+      {children}
+    </TurnOnOffContext.Provider>
+  );
 };
 
-const TurnedOn = ({isOn, children}: any) => (isOn ? children : null);
+const TurnedOn = ({children}: any) => {
+  const {isOn} = useContext(TurnOnOffContext);
 
-const TurnedOff = ({isOn, children}: any) => (isOn ? null : children);
+  return isOn ? children : null;
+};
+const TurnedOff = ({children}: any) => {
+  const {isOn} = useContext(TurnOnOffContext);
+  return isOn ? null : children;
+};
 
-const TurnButton = ({isOn, onTurn}: any) => {
+const TurnButton = () => {
+  const {isOn, onTurn} = useContext(TurnOnOffContext);
   return <button onClick={onTurn}>Turn is {isOn ? 'On' : 'OFF'}</button>;
 };
 
