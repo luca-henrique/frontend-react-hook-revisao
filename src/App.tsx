@@ -1,10 +1,4 @@
-import {
-  Children,
-  cloneElement,
-  createContext,
-  useContext,
-  useState,
-} from 'react';
+import {createContext, useContext, useState} from 'react';
 
 const TurnOnOffContext = createContext({});
 
